@@ -2,6 +2,7 @@
   "name": "mycard-packager",
   "version": "0.0.1",
   "dependencies": {
+    "coffeescript": "^2.0.0-beta4",
     "express": "^4.15.3",
     "moment": "^2.18.1",
     "mustache": "^2.3.0",
