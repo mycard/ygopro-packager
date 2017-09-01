@@ -74,7 +74,7 @@ prepare = (app_name) ->
 
 deploy = (dir) ->
   # 4 DEPLOY ARCHIVES to OSS.
-  command = mustache.render config.deploy_command, { mode: "dir", source_path: path.dirname dir }
+  command = mustache.render config.deploy_command, { source_path: path.dirname dir }
   await asyncExecute command
 
 

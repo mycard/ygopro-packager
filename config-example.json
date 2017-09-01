@@ -5,5 +5,6 @@
     "database": "postgres",
     "user": "iami",
     "password": ""
-  }
+  },
+  "deploy_command": ""
 }
