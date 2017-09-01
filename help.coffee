@@ -43,7 +43,7 @@ prepare = (app_name) ->
   from_path_sources = api_response.assets.map (asset) -> { name: asset.name, url: asset.browser_download_url }
 
   # 0 Build Download Directory
-  try fs.mkdirSync app_name
+  try fs.mkdirSync path.join config.target_root, app_name
   download_target_path = path.join config.target_root, app_name, 'source'
   try fs.mkdirSync download_target_path
 
