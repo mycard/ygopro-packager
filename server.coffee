@@ -33,8 +33,9 @@ server.post '/pack', (req, res) ->
     for asset in assets
       path = help.generate_path app_name, asset.release_name
       await lib.execute asset.b_name, asset.release_name, path.from_path, path.to_path
-      help.deploy path.to_path
-    console.log "Finished processing #{app_name}" 
+      await help.deploy path.to_path
+    console.log "Finished processing #{app_name}"
+    running = null 
     resolve 'ok'
 
 server.get '/progress', (req, res) ->
