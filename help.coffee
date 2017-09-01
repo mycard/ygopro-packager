@@ -17,14 +17,14 @@ config = require './config.json'
 
 generate_path = (app_name, release_name) ->
   # 3 Generate FROM_PATH and TO_PATH
-  from_path = path.join app_name, 'source', path.basename(release_name, ".tar.gz")
-  to_path = path.join app_name, 'target', path.basename(release_name, ".tar.gz")
+  from_path = path.join config.target_root, app_name, 'source', path.basename(release_name, ".tar.gz")
+  to_path = path.join config.target_root, app_name, 'target', path.basename(release_name, ".tar.gz")
 
   # Make the dir exists.
-  try fs.mkdirSync app_name
+  try fs.mkdirSync path.join config.target_root, app_name
 
-  try fs.mkdirSync path.join app_name, 'source'
-  try fs.mkdirSync path.join app_name, 'target'
+  try fs.mkdirSync path.join config.target_root, app_name, 'source'
+  try fs.mkdirSync path.join config.target_root, app_name, 'target'
 
   try fs.mkdirSync from_path
   try fs.mkdirSync to_path
@@ -44,7 +44,7 @@ prepare = (app_name) ->
 
   # 0 Build Download Directory
   try fs.mkdirSync app_name
-  download_target_path = path.join app_name, 'source'
+  download_target_path = path.join config.target_root, app_name, 'source'
   try fs.mkdirSync download_target_path
 
   # 0 Generate download target path
