@@ -80,7 +80,8 @@ deploy = (dir) ->
 
 asyncExecute = (command) ->
   new Promise (resolve, reject) ->
-    child_process.exec command, (err, stdout, stderr) ->
+    # Magic Patch
+    child_process.exec command, { stdio: ignore, maxBuffer: 400 * 1024 }, (err, stdout, stderr) ->
       if err then reject err else resolve stdout
 
 # Only for ygopro.
