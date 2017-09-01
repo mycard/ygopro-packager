@@ -63,8 +63,10 @@ prepare = (app_name) ->
   for asset in from_path_sources
     console.log "Unzipping file " + asset.download_target
     asset.dirname = path.join path.dirname(asset.download_target), path.basename(asset.download_target, ".tar.gz")
+    command = "tar --warning=no-unknown-keyword -zxf " + asset.download_target + " -C " + asset.dirname
+    console.log "Executing command #{command}" if process.env.NODE_ENV == "DEBUG"
     try fs.mkdirSync asset.dirname
-    await asyncExecute "tar --warning=no-unknown-keyword -zxf " + asset.download_target + " -C " + asset.dirname
+    await asyncExecute command
   console.log "Unzip step finished."
 
   # 1 Generate RELEASE List from RELEASES
