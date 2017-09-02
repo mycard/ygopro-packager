@@ -1,7 +1,6 @@
 path = require 'path'
 request = require 'request'
 fs = require 'fs'
-mustache = require 'mustache'
 child_process = require 'child_process'
 config = require './config.json'
 
@@ -76,14 +75,15 @@ prepare = (app_name) ->
 
 deploy = (dir) ->
   # 4 DEPLOY ARCHIVES to OSS.
-  command = mustache.render config.deploy_command, { source_path: path.dirname dir }
+  # command = mustache.render config.deploy_command, { source_path: dir }
+  command = config.deploy_command.replace "{{source_path}}", dir
+  console.log "Executing deploy command #{command}"
   await asyncExecute command
 
 
 asyncExecute = (command) ->
   new Promise (resolve, reject) ->
-    # Magic Patch
-    child_process.exec command, { stdio: ignore, maxBuffer: 400 * 1024 }, (err, stdout, stderr) ->
+    child_process.exec command, (err, stdout, stderr) ->
       if err then reject err else resolve stdout
 
 # Only for ygopro.
