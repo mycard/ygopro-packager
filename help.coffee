@@ -78,12 +78,13 @@ deploy = (dir) ->
   # command = mustache.render config.deploy_command, { source_path: dir }
   command = config.deploy_command.replace "{{source_path}}", dir
   console.log "Executing deploy command #{command}"
-  await asyncExecute command
+  await asyncExecute command, { stdio: 'ignore' }
 
 
-asyncExecute = (command) ->
+asyncExecute = (command, config) ->
+  config = {} unless config
   new Promise (resolve, reject) ->
-    child_process.exec command, (err, stdout, stderr) ->
+    child_process.exec command, config, (err, stdout, stderr) ->
       if err then reject err else resolve stdout
 
 # Only for ygopro.
