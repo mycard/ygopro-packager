@@ -20,7 +20,6 @@ saveRelease = (b_name, release_name) ->
 
 
 saveArchives = (release_name, archives) ->
-  promises = []
   count = 0
   max_count = 1000
   archive_files_will_execute = []

@@ -62,17 +62,18 @@ generateStrategyArchive = (b_name, release_name, new_release_files, source_path,
   release_names = releases.slice(0, 5).map (release) -> release.name
   promises = release_names.map (release_name) -> database.loadFiles release_name
   old_release_files_array = await Promise.all(promises)
-  old_release_files_array.map (old_release_files) ->
-    generateStrategyArchiveBetweenReleases("#{release_name}And#{old_release_files[0].release}", old_release_files, new_release_files, source_path, target_path)
+  strategy_archives = []
+  for old_release_files in old_release_files_array
+    strategy_archive = await generateStrategyArchiveBetweenReleases("#{release_name}And#{old_release_files[0].release}", old_release_files, new_release_files, source_path, target_path)
+    strategy_archives.push strategy_archive
+  return strategy_archives
 
 generateStrategyArchiveBetweenReleases = (pack_name, old_release, new_release, source_path, target_path) ->
   changed_files = compareRelease old_release, new_release
   changed_file_names = changed_files.map (file) -> file.name
-  return {
-    files: changed_file_names
-    checksum: await pack changed_file_names, pack_name, source_path, target_path
-  }
-
+  strategy_archive = { files: changed_file_names, type: 'strategy' }
+  strategy_archive.checksum = await pack changed_file_names, pack_name, source_path, target_path
+  strategy_archive
 
 compareRelease = (old_release, new_release) ->
   old_release_hash = generateReleaseHash old_release
@@ -120,7 +121,7 @@ execute = (b_name, release_name, release_source_path, release_target_path) ->
   archive_indices = archive_indices.concat await generateSeparateArchive release_source_path, files, release_archive_path
   console.log "Generating strategy archives."
   result = await generateStrategyArchive(b_name, release_name, file_checksum, release_source_path, release_archive_path)
-  archive_indices.concat result
+  archive_indices = archive_indices.concat result
 
   # Calculate File Size.
   console.log "Calculating file size."
