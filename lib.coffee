@@ -64,7 +64,7 @@ generateStrategyArchive = (b_name, release_name, new_release_files, source_path,
   old_release_files_array = await Promise.all(promises)
   strategy_archives = []
   for old_release_files in old_release_files_array
-    strategy_archive = await generateStrategyArchiveBetweenReleases("#{release_name}And#{old_release_files[0].release}", old_release_files, new_release_files, source_path, target_path)
+    strategy_archive = await generateStrategyArchiveBetweenReleases("#{release_name}And#{if old_release_files[0] then old_release_files[0].release else 'emptyRelease'}", old_release_files, new_release_files, source_path, target_path)
     strategy_archives.push strategy_archive
   return strategy_archives
 
