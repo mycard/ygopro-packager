@@ -38,9 +38,10 @@ saveArchives = (release_name, archives) ->
       archive_files_will_execute = []
       archives_will_execute = []
       count = 0
-  console.log "Execute save archive files for #{count} key/values." if process.env.NODE_ENV == "DEBUG"
-  await pool.query SAVE_ARCHIVE_FILES + archive_files_will_execute.join(', '), []
-  await pool.query SAVE_ARCHIVES + archives_will_execute.join(', '), []
+  if count > 0
+    console.log "Execute save archive files for #{count} key/values." if process.env.NODE_ENV == "DEBUG"
+    await pool.query SAVE_ARCHIVE_FILES + archive_files_will_execute.join(', '), []
+    await pool.query SAVE_ARCHIVES + archives_will_execute.join(', '), []
 
   # Promise.all(promises)
 
