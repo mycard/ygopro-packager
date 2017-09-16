@@ -31,8 +31,15 @@ calculateSHA256 = (file) ->
 
 pack = (from, to, from_dir, to_dir) ->
   full_to_path = path.join to_dir, to
-  from = from.join '" "'if Array.isArray from
-  command = "tar -zcf \"#{full_to_path}\" -C #{from_dir} \"#{from}\""
+  use_file_list = false
+  if Array.isArray from
+    use_file_list = true
+    console.log "packager is writing #{from.length} files to temp_file_operation.file_list."
+    fs.writeFileSync "temp_file_operation.file_list", from.join "\n"
+  if use_file_list
+    command = "tar -zcf \"#{full_to_path}\" -C #{from_dir} -T temp_file_operation.file_list"
+  else
+    command = "tar -zcf \"#{full_to_path}\" -C #{from_dir} \"#{from}\""
   #console.log command
   await new Promise (resolve, reject) ->
     child_process.exec command, (err, stdout) ->
