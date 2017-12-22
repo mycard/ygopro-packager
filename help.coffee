@@ -89,7 +89,7 @@ asyncExecute = (command, config) ->
 
 # Only for ygopro.
 # Extract 'linux-en-US' from 'ygopro-1.033.F-1-linux-en-US.tar.gz'
-reg = new RegExp '1\\.03\\d\\.[A-H]\\-\\d+\\-'
+reg = new RegExp '1\\.03\\d\\.[0-9A-H]\\-\\d+\\-'
 extractBName = (release_name) ->
   match = reg.exec release_name
   start_position = match.index + match[0].length
