@@ -54,24 +54,25 @@ generateFullArchive = (source_path, target_path) ->
   type: 'full'
   checksum: await pack '.', 'full.tar.gz', source_path, target_path
 
-generateSeparateArchive = (source_path, files, target_path) ->
+generateSeparateArchive = (b_name, source_path, files, target_path) ->
   # Load cache message: Files and Archives. Load from database, and hash them.
   releases = await database.loadRelease b_name
   if releases and releases[0]
     release_name = releases[0].name
-    latest_archives = database.loadArchives release_name
+    latest_archives = await database.loadArchives release_name
     latest_archive_hash = {}
-    latest_archives.forEach (archive) -> latest_archive_hash[archive.files[0]] = archive if archive.type == 'sand'
-    latest_files = database.loadFiles release_name
+    for archive from latest_archives.values()
+      latest_archive_hash[archive.files[0]] = archive if archive.type == 'sand'
+    latest_files = await database.loadFiles release_name
     latest_file_hash = {}
-    latest_files.forEach (file) -> latest_file_hash[file.checksum] = file
+    latest_files.forEach (file) -> latest_file_hash[file.path] = file
 
   answers = []
   for file_checksum in files
     file = file_checksum.name
     # Using cache condition: file exist on latest release AND has the same FILE checksum
     # if fits, the returning checksum is the ARCHIVE checksum
-    if latest_files and latest_files[file] and latest_files[file] == file_checksum.checksum and latest_archive_hash[file]
+    if latest_file_hash and latest_file_hash[file] and latest_file_hash[file].checksum == file_checksum.checksum and latest_archive_hash[file]
       answers.push
         files: [file]
         type: 'sand'
@@ -152,7 +153,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   archive_indices.push await generateFullArchive release_source_path, release_archive_path
   console.log "Generating separate archives."
   running_data.child_process = 12 if running_data
-  archive_indices = archive_indices.concat await generateSeparateArchive release_source_path, file_checksum, release_archive_path
+  archive_indices = archive_indices.concat await generateSeparateArchive b_name, release_source_path, file_checksum, release_archive_path
   console.log "Generating strategy archives."
   running_data.child_process = 13 if running_data
   result = await generateStrategyArchive(b_name, release_name, file_checksum, release_source_path, release_archive_path)

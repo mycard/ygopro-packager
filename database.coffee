@@ -71,7 +71,7 @@ loadArchives = (release_name) ->
               size: row.size
               type: row.type
               checksum: row.checksum
-              file: [row.file]
+              files: [row.file]
         resolve archives
 
 loadFiles = (release_name)  ->
