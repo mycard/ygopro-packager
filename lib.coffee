@@ -55,16 +55,35 @@ generateFullArchive = (source_path, target_path) ->
   checksum: await pack '.', 'full.tar.gz', source_path, target_path
 
 generateSeparateArchive = (source_path, files, target_path) ->
-  #releases = await database.loadRelease b_name
-  #if releases and releases[0]
-  #  release_name = releases[0].name
-  #  latest_archives = database.loadArchives release_name
+  # Load cache message: Files and Archives. Load from database, and hash them.
+  releases = await database.loadRelease b_name
+  if releases and releases[0]
+    release_name = releases[0].name
+    latest_archives = database.loadArchives release_name
+    latest_archive_hash = {}
+    latest_archives.forEach (archive) -> latest_archive_hash[archive.files[0]] = archive if archive.type == 'sand'
+    latest_files = database.loadFiles release_name
+    latest_file_hash = {}
+    latest_files.forEach (file) -> latest_file_hash[file.checksum] = file
 
   answers = []
-  for file in files
-    answer = { files: [file], type: 'sand' }
-    answer.checksum = await pack file, file.replace(/\//g, '_'), source_path, target_path
-    answers.push answer
+  for file_checksum in files
+    file = file_checksum.name
+    # Using cache condition: file exist on latest release AND has the same FILE checksum
+    # if fits, the returning checksum is the ARCHIVE checksum
+    if latest_files and latest_files[file] and latest_files[file] == file_checksum.checksum and latest_archive_hash[file]
+      answers.push
+        files: [file]
+        type: 'sand'
+        checksum: latest_archive_hash[file].checksum
+        size: latest_archive_hash[file].size
+      console.log "loaded cached #{file} from release #{release_name}"
+    else
+      answer =
+        files: [file]
+        type: 'sand'
+      answer.checksum = await pack file, file.replace(/\//g, '_'), source_path, target_path
+      answers.push answer
   console.log "Finish generate separate archives step."
   return answers
 
@@ -133,7 +152,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   archive_indices.push await generateFullArchive release_source_path, release_archive_path
   console.log "Generating separate archives."
   running_data.child_process = 12 if running_data
-  archive_indices = archive_indices.concat await generateSeparateArchive release_source_path, files, release_archive_path
+  archive_indices = archive_indices.concat await generateSeparateArchive release_source_path, file_checksum, release_archive_path
   console.log "Generating strategy archives."
   running_data.child_process = 13 if running_data
   result = await generateStrategyArchive(b_name, release_name, file_checksum, release_source_path, release_archive_path)
@@ -143,11 +162,12 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   console.log "Calculating file size."
   running_data.child_process = 14 if running_data
   for archive_index in archive_indices
-    state = fs.lstatSync path.join release_archive_path, archive_index.checksum + '.tar.gz'
-    if state.isDirectory()
-      archive_index.size = 0
-    else
-      archive_index.size = state.size
+    unless archive_indices.size
+      state = fs.lstatSync path.join release_archive_path, archive_index.checksum + '.tar.gz'
+      if state.isDirectory()
+        archive_index.size = 0
+      else
+        archive_index.size = state.size
   console.log "Generate archive Step finished."
 
   # No.2 ARCHIVE Index
