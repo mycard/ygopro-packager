@@ -55,6 +55,11 @@ generateFullArchive = (source_path, target_path) ->
   checksum: await pack '.', 'full.tar.gz', source_path, target_path
 
 generateSeparateArchive = (source_path, files, target_path) ->
+  #releases = await database.loadRelease b_name
+  #if releases and releases[0]
+  #  release_name = releases[0].name
+  #  latest_archives = database.loadArchives release_name
+
   answers = []
   for file in files
     answer = { files: [file], type: 'sand' }
@@ -100,7 +105,7 @@ generateReleaseHash = (release) ->
 # 2、All ARCHIVE Index to FILE
 # 3、All FILE Checksum
 # 4、Full ARCHIVE meta4
-execute = (b_name, release_name, release_source_path, release_target_path) ->
+execute = (b_name, release_name, release_source_path, release_target_path, running_data) ->
   console.log "Executing " + b_name + "/" + release_name + " from " + release_source_path + " to " + release_target_path
   release_archive_path = path.join release_target_path, 'archives'
 
@@ -117,21 +122,26 @@ execute = (b_name, release_name, release_source_path, release_target_path) ->
     checksum.checksum = await calculateSHA256 path.join release_source_path, file
     file_checksum.push checksum  
   console.log "Saving Files to database."
+  running_data.child_process = 1 if running_data
   await database.saveFiles release_name, file_checksum
   console.log "Files inventory Step finished."
 
   # No.1 ARCHIVES
   archive_indices = []
   console.log "Generating full archive."
+  running_data.child_process = 11 if running_data
   archive_indices.push await generateFullArchive release_source_path, release_archive_path
   console.log "Generating separate archives."
+  running_data.child_process = 12 if running_data
   archive_indices = archive_indices.concat await generateSeparateArchive release_source_path, files, release_archive_path
   console.log "Generating strategy archives."
+  running_data.child_process = 13 if running_data
   result = await generateStrategyArchive(b_name, release_name, file_checksum, release_source_path, release_archive_path)
   archive_indices = archive_indices.concat result
 
   # Calculate File Size.
   console.log "Calculating file size."
+  running_data.child_process = 14 if running_data
   for archive_index in archive_indices
     state = fs.lstatSync path.join release_archive_path, archive_index.checksum + '.tar.gz'
     if state.isDirectory()
@@ -142,6 +152,7 @@ execute = (b_name, release_name, release_source_path, release_target_path) ->
 
   # No.2 ARCHIVE Index
   console.log "Saving Archive files."
+  running_data.child_process = 20 if running_data
   await database.saveArchives release_name, archive_indices
   # fs.writeFileSync path.join(release_target_path, 'archive indices.json'), JSON.stringify(archive_indices, null, 1)
 
@@ -157,5 +168,5 @@ execute = (b_name, release_name, release_source_path, release_target_path) ->
   #  hash:
 
   console.log "Finish executing " + b_name + "/" + release_name
-
+  
 module.exports.execute = execute
