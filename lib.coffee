@@ -142,26 +142,26 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
     checksum.checksum = await calculateSHA256 path.join release_source_path, file
     file_checksum.push checksum  
   console.log "Saving Files to database."
-  running_data.child_process = 1 if running_data
+  running_data.child_progress = 1 if running_data
   await database.saveFiles release_name, file_checksum
   console.log "Files inventory Step finished."
 
   # No.1 ARCHIVES
   archive_indices = []
   console.log "Generating full archive."
-  running_data.child_process = 11 if running_data
+  running_data.child_progress = 11 if running_data
   archive_indices.push await generateFullArchive release_source_path, release_archive_path
   console.log "Generating separate archives."
-  running_data.child_process = 12 if running_data
+  running_data.child_progress = 12 if running_data
   archive_indices = archive_indices.concat await generateSeparateArchive b_name, release_source_path, file_checksum, release_archive_path
   console.log "Generating strategy archives."
-  running_data.child_process = 13 if running_data
+  running_data.child_progress = 13 if running_data
   result = await generateStrategyArchive(b_name, release_name, file_checksum, release_source_path, release_archive_path)
   archive_indices = archive_indices.concat result
 
   # Calculate File Size.
   console.log "Calculating file size."
-  running_data.child_process = 14 if running_data
+  running_data.child_progress = 14 if running_data
   for archive_index in archive_indices
     unless archive_index.size
       try
@@ -176,7 +176,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
 
   # No.2 ARCHIVE Index
   console.log "Saving Archive files."
-  running_data.child_process = 20 if running_data
+  running_data.child_progress = 20 if running_data
   await database.saveArchives release_name, archive_indices
   # fs.writeFileSync path.join(release_target_path, 'archive indices.json'), JSON.stringify(archive_indices, null, 1)
 
