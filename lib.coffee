@@ -164,11 +164,14 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   running_data.child_process = 14 if running_data
   for archive_index in archive_indices
     unless archive_indices.size
-      state = fs.lstatSync path.join release_archive_path, archive_index.checksum + '.tar.gz'
-      if state.isDirectory()
-        archive_index.size = 0
-      else
-        archive_index.size = state.size
+      try
+        state = fs.lstatSync path.join release_archive_path, archive_index.checksum + '.tar.gz'
+        if state.isDirectory()
+          archive_index.size = 0
+        else
+          archive_index.size = state.size
+      catch ex
+        console.log "No such file: #{release_archive_path}/#{archive_index.checksum}, #{ex}"
   console.log "Generate archive Step finished."
 
   # No.2 ARCHIVE Index

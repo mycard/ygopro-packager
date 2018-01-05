@@ -30,7 +30,8 @@ server.post '/pack', (req, res) ->
 
   # Start process.
   running.promise = new Promise (resolve, reject) ->
-    assets = await help.prepare app_name
+    assets = await help.prepare app_name, running.data
+    running.data.main_progress = 1
     console.log "Releases will process: " if process.env.NODE_ENV == "DEBUG"
     console.log assets if process.env.NODE_ENV == "DEBUG"
     running.data.progress_list = assets.map (asset) -> asset.release_name

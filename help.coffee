@@ -33,7 +33,8 @@ generate_path = (app_name, release_name) ->
     to_path: to_path
 
 
-prepare = (app_name) ->
+prepare = (app_name, running_data) ->
+  running_data.child_progress = 0
   api_source = "https://api.github.com/repos/moecube/" + app_name + "/releases/latest"
   # 0 Download RELEASE list from Github
   api_response = await new Promise (resolve, reject) ->
@@ -51,14 +52,17 @@ prepare = (app_name) ->
   console.log "Packager see " + from_path_sources.length + " downloading releases."
 
   # 1 Execute Download Step（via browser_download_url）
+  running_data.child_progress += 1
   for from_path_source in from_path_sources
     await new Promise (resolve, reject) ->
       request(from_path_source.url).pipe(fs.createWriteStream from_path_source.download_target).on 'close', ->
         resolve 'ok'
       console.log "Downloading " + app_name + "/" + from_path_source.name + "(" + from_path_source.url + ")"
+    running_data.child_progress += 1
   console.log app_name + " Download step finished."
   
   # 2 Unzip Release Files
+  running_data.child_progress = 100
   for asset in from_path_sources
     console.log "Unzipping file " + asset.download_target
     asset.dirname = path.join path.dirname(asset.download_target), path.basename(asset.download_target, ".tar.gz")
@@ -66,6 +70,7 @@ prepare = (app_name) ->
     console.log "Executing command #{command}" if process.env.NODE_ENV == "DEBUG"
     try fs.mkdirSync asset.dirname
     await asyncExecute command
+    running_data.child_progress += 1
   console.log "Unzip step finished."
 
   # 1 Generate RELEASE List from RELEASES
