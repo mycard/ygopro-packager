@@ -163,7 +163,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   console.log "Calculating file size."
   running_data.child_process = 14 if running_data
   for archive_index in archive_indices
-    unless archive_indices.size
+    unless archive_index.size
       try
         state = fs.lstatSync path.join release_archive_path, archive_index.checksum + '.tar.gz'
         if state.isDirectory()
