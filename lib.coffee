@@ -88,7 +88,6 @@ generateSeparateArchive = (b_name, source_path, files, target_path) ->
   console.log "Finish generate separate archives step."
   return answers
 
-
 generateStrategyArchive = (b_name, release_name, new_release_files, source_path, target_path) ->
   releases = await database.loadRelease b_name
   release_names = releases.slice(0, 5).map (release) -> release.name
@@ -115,6 +114,10 @@ generateReleaseHash = (release) ->
   release_hash = new Map
   release_hash.set file.path, file.checksum for file in release
   release_hash
+
+writeSHA256file = (file_checksums, target_path) ->
+  contents = file_checksums.map (file_checksum) -> "#{file_checksum.checksum}  #{file_checksum.name}"
+  fs.writeFileSync target_path, contents.join("\n")
 
 # For each RELEASE, execute generate:
 # 0、Save the RELEASE itself to DATABASE.
@@ -143,6 +146,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
     file_checksum.push checksum  
   console.log "Saving Files to database."
   running_data.child_progress = 1 if running_data
+  writeSHA256file file_checksum, path.join(release_target_path, "ygopro-" + b_name)
   await database.saveFiles release_name, file_checksum
   console.log "Files inventory Step finished."
 
