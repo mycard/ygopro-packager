@@ -98,8 +98,9 @@ reg = new RegExp '1\\.03\\d\\.[0-9A-H]\\-\\d+\\-'
 extractBName = (release_name) ->
   match = reg.exec release_name
   start_position = match.index + match[0].length
-  release_name.substring(start_position, release_name.length - 7)
-
+  name = release_name.substring(start_position, release_name.length - 7)
+  # MAGIC CHANGE
+  name.replace 'osx', 'darwin'
 
 
 module.exports.deploy = deploy
