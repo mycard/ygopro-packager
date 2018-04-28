@@ -47,7 +47,7 @@ server.post '/pack', (req, res) ->
       path = help.generate_path app_name, asset.release_name
       code = await lib.execute asset.b_name, asset.release_name, path.from_path, path.to_path, running.data
       pass_count += 1 if code > 0
-      running.data.child_progress = 30
+      running.data.child_progress = if code > 0 then 999 else 30
       await help.deploy path.to_path
       running.data.main_progress += 1
     console.log "Finished processing #{app_name}"
