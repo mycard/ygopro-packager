@@ -6,6 +6,7 @@ SAVE_RELEASE = 'insert into releases (b, name, created_at) values ($1::text, $2:
 SAVE_ARCHIVES = 'insert into archives (release, checksum, type, size) values '
 SAVE_ARCHIVE_FILES = 'insert into archive_files values '
 SAVE_FILES = 'insert into files values '
+CHECK_RELEASE = 'select count(*) from releases where name = $1::text'
 LOAD_RELEASE = 'select * from releases values where b = $1::text order by created_at desc'
 LOAD_ARCHIVES = 'select * from archives inner join archive_files on archive_files.archive = archives.checksum where archives.release = $1::text'
 LOAD_FILES = 'select * from files where release = $1::text'
@@ -50,6 +51,10 @@ saveFiles = (release_name, files) ->
   new Promise (resolve, reject) ->
     pool.query SAVE_FILES + values.join(', '), [], (err, result) -> returning_promise_handle err, result, resolve, reject
 
+checkRelease = (release_name) ->
+  result = await pool.query CHECK_RELEASE, [release_name]
+  result.rows.count > 0
+      
 loadRelease = (b_name) ->
   new Promise (resolve, reject) ->
     pool.query LOAD_RELEASE, [b_name], (err, result) -> returning_promise_handle err, result, resolve, reject
@@ -88,6 +93,7 @@ returning_promise_handle = (err, result, resolve, reject) ->
 module.exports.saveRelease = saveRelease
 module.exports.saveArchives = saveArchives
 module.exports.saveFiles = saveFiles
+module.exports.checkRelease = checkRelease
 module.exports.loadRelease = loadRelease
 module.exports.loadArchives = loadArchives
 module.exports.loadFiles = loadFiles

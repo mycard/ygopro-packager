@@ -120,15 +120,19 @@ writeSHA256file = (file_checksums, target_path) ->
   fs.writeFileSync target_path, contents.join("\n")
 
 # For each RELEASE, execute generate:
-# 0、Save the RELEASE itself to DATABASE.
+# 0、If release already exists, nothing happen.
 # 1、ARCHIVES
 #   Full ARCHIVE
 #   Separate ARCHIVE
 #   Strategy ARCHIVE according to VERSION ID
 # 2、All ARCHIVE Index to FILE
-# 3、All FILE Checksum
-# 4、Full ARCHIVE meta4
+# 3、Save the RELEASE itself to DATABASE.
 execute = (b_name, release_name, release_source_path, release_target_path, running_data) ->
+  exist = database.checkRelease release_name
+  if exist
+    console.log "#{release_name} #{b_name} already exists, pass the pack."
+    return 1
+
   console.log "Executing " + b_name + "/" + release_name + " from " + release_source_path + " to " + release_target_path
   release_archive_path = path.join release_target_path, 'archives'
 
@@ -196,5 +200,6 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   #  hash:
 
   console.log "Finish executing " + b_name + "/" + release_name
+  return 0
   
 module.exports.execute = execute
