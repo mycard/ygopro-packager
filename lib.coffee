@@ -1,6 +1,7 @@
 fs = require 'fs'
 path = require 'path'
 crypto = require 'crypto'
+mustache = require 'mustache'
 child_process = require 'child_process'
 database = require './database'
 
@@ -119,8 +120,14 @@ writeSHA256file = (file_checksums, target_path) ->
   contents = file_checksums.map (file_checksum) -> "#{file_checksum.checksum}  #{file_checksum.name}"
   fs.writeFileSync target_path, contents.join("\n")
 
+writeMetalinkFile = (full_archive, target_path) ->
+  template = fs.readFileSync(path.join(__dirname, 'template.meta4')).toString()
+  metalink = Mustache.render template, { packages: [{checksum: full_archive.checksum, size: full_archive.size}] }
+  fs.writeFileSync target_path, metalink
+  
 # For each RELEASE, execute generate:
 # 0、If release already exists, nothing happen.
+#    Then Release itself.
 # 1、ARCHIVES
 #   Full ARCHIVE
 #   Separate ARCHIVE
@@ -135,9 +142,13 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
 
   console.log "Executing " + b_name + "/" + release_name + " from " + release_source_path + " to " + release_target_path
   release_archive_path = path.join release_target_path, 'archives'
+  release_checksum_path = path.join release_target_path, 'checksums'
+  release_metalink_path = path.join release_target_path, 'metalinks'
 
   try fs.mkdirSync release_target_path
   try fs.mkdirSync release_archive_path
+  try fs.mkdirSync release_checksum_path
+  try fs.mkdirSync release_metalink_path
 
   files = readDir release_source_path
 
@@ -150,7 +161,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
     file_checksum.push checksum  
   console.log "Saving Files to database."
   running_data.child_progress = 1 if running_data
-  writeSHA256file file_checksum, path.join(release_target_path, "ygopro-" + b_name)
+  writeSHA256file file_checksum, path.join(release_checksum_path, "ygopro-" + b_name)
   await database.saveFiles release_name, file_checksum
   console.log "Files inventory Step finished."
 
@@ -158,7 +169,8 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   archive_indices = []
   console.log "Generating full archive."
   running_data.child_progress = 11 if running_data
-  archive_indices.push await generateFullArchive release_source_path, release_archive_path
+  full_archive = await generateFullArchive release_source_path, release_archive_path
+  archive_indices.push full_archive
   console.log "Generating separate archives."
   running_data.child_progress = 12 if running_data
   archive_indices = archive_indices.concat await generateSeparateArchive b_name, release_source_path, file_checksum, release_archive_path
@@ -193,8 +205,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   await database.saveRelease b_name, release_name
 
   # No.4 Full ARCHIVE meta4
-  # This step is removed because I think it's not worth to mix the logistics for ￥0.1 flow fee.
-  #metalink = Mustache.render template,
+  writeMetalinkFile file_checksum, path.join(release_metalink_path, "ygopro-" + b_name + ".meta4")
   #  name:
   #  size:
   #  hash:
