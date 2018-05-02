@@ -202,9 +202,12 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
 
   # No.0 RELEASE itself.
   console.log "Saving Release."
+  running_data.child_progress = 21
   await database.saveRelease b_name, release_name
 
   # No.4 Full ARCHIVE meta4
+  console.log "Saving Metalink."
+  running_data.child_progress = 22
   writeMetalinkFile file_checksum, path.join(release_metalink_path, "ygopro-" + b_name + ".meta4")
   #  name:
   #  size:
