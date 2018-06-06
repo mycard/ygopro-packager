@@ -122,7 +122,7 @@ writeSHA256file = (file_checksums, target_path) ->
 
 writeMetalinkFile = (full_archive, target_path) ->
   template = fs.readFileSync(path.join(__dirname, 'template.meta4')).toString()
-  metalink = Mustache.render template, { packages: [{checksum: full_archive.checksum, size: full_archive.size}] }
+  metalink = mustache.render template, { packages: [{checksum: full_archive.checksum, size: full_archive.size}] }
   fs.writeFileSync target_path, metalink
   
 # For each RELEASE, execute generate:
