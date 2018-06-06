@@ -53,7 +53,7 @@ saveFiles = (release_name, files) ->
 
 checkRelease = (release_name) ->
   result = await pool.query CHECK_RELEASE, [release_name]
-  result.rows.count > 0
+  result.rows[0].count > 0
       
 loadRelease = (b_name) ->
   new Promise (resolve, reject) ->
