@@ -135,7 +135,7 @@ writeMetalinkFile = (full_archive, target_path) ->
 # 2、All ARCHIVE Index to FILE
 # 3、Save the RELEASE itself to DATABASE.
 execute = (b_name, release_name, release_source_path, release_target_path, running_data) ->
-  exist = database.checkRelease release_name
+  exist = await database.checkRelease release_name
   if exist
     console.log "#{release_name} #{b_name} already exists, pass the pack."
     return 1
@@ -208,7 +208,7 @@ execute = (b_name, release_name, release_source_path, release_target_path, runni
   # No.4 Full ARCHIVE meta4
   console.log "Saving Metalink."
   running_data.child_progress = 22
-  writeMetalinkFile file_checksum, path.join(release_metalink_path, "ygopro-" + b_name + ".meta4")
+  writeMetalinkFile full_archive, path.join(release_metalink_path, "ygopro-" + b_name + ".meta4")
   #  name:
   #  size:
   #  hash:
