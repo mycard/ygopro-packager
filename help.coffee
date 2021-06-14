@@ -33,14 +33,22 @@ generate_path = (app_name, release_name) ->
     to_path: to_path
 
 
-prepare = (app_name, running_data) ->
+prepare = (app_name, running_data, source = 'gitlab') ->
   running_data.child_progress = 0
-  api_source = "https://api.github.com/repos/moecube/" + app_name + "/releases/latest"
-  # 0 Download RELEASE list from Github
-  api_response = await new Promise (resolve, reject) ->
-    request { url: api_source, headers: { 'User-Agent': 'moecube-ygopro-packager' }}, (err, res, body) ->
-      resolve JSON.parse body
-  from_path_sources = api_response.assets.map (asset) -> { name: asset.name, url: asset.browser_download_url }
+  if source == 'github'
+    api_source = "https://api.github.com/repos/moecube/" + app_name + "/releases/latest"
+    # 0 Download RELEASE list from Github
+    api_response = await new Promise (resolve, reject) ->
+      request { url: api_source, headers: { 'User-Agent': 'moecube-ygopro-packager' }}, (err, res, body) ->
+        resolve JSON.parse body
+    from_path_sources = api_response.assets.map (asset) -> { name: asset.name, url: asset.browser_download_url }
+  else if source == 'gitlab'
+    api_source = "http://ygopro-release-helper:3000/release"
+    api_response = await new Promise (resolve, reject) ->
+      request { url: api_source, headers: { 'Authorization': process.env.MYCARD_RELEASE_TOKEN } }, (err, res, body) -> resolve JSON.parse body
+    from_path_sources = api_response.files.map (asset) -> { name: asset.filename, url: "https://cdn01.moecube.com/mcpro/#{asset.filename}" }
+  else 
+    throw "Can't recognize source #{source}"
 
   # 0 Build Download Directory
   try fs.mkdirSync path.join config.target_root, app_name
