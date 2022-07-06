@@ -4,7 +4,7 @@
   "dependencies": {
     "coffeescript": "^2.0.0-beta4",
     "express": "^4.15.4",
-    "moment": "^2.22.1",
+    "moment": "^2.29.4",
     "mustache": "^2.3.0",
     "pg": "^7.2.0",
     "request": "^2.81.0",
